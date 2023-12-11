@@ -30,8 +30,8 @@ local function setup_ui_element(lines, filetype, bufnr, start_row, start_col,
     if not vim.g["codegpt_ui_persist"] then
         -- unmount component when cursor leaves buffer
         ui_elem:on(event.BufLeave, function()
-            ui_elem:unmount()
             append_to_file()
+            ui_elem:unmount()
         end)
     end
 
