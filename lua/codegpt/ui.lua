@@ -6,20 +6,39 @@ local Ui = {}
 
 local popup
 local split
+local file_path = vim.g["codegpt_history_file"]
 
-local function setup_ui_element(lines, filetype, bufnr, start_row, start_col, end_row, end_col, ui_elem)
+local function append_to_file()
+    -- Get the content of the current buffer
+    local buffer_content = vim.fn.getline(1, "$")
+
+    -- Open the file in append mode
+    local file = io.open(file_path, "a")
+
+    -- Append the buffer content to the file
+    for _, line in ipairs(buffer_content) do file:write(line .. "\n") end
+
+    -- Close the file
+    file:close()
+end
+
+local function setup_ui_element(lines, filetype, bufnr, start_row, start_col,
+                                end_row, end_col, ui_elem)
     -- mount/open the component
     ui_elem:mount()
 
     if not vim.g["codegpt_ui_persist"] then
         -- unmount component when cursor leaves buffer
-        ui_elem:on(event.BufLeave, function() ui_elem:unmount() end)
+        ui_elem:on(event.BufLeave, function()
+            ui_elem:unmount()
+            append_to_file()
+        end)
     end
 
     -- unmount component when key 'q'
-    ui_elem:map("n", vim.g["codegpt_ui_commands"].quit, function()
-        ui_elem:unmount()
-    end, { noremap = true, silent = true })
+    ui_elem:map("n", vim.g["codegpt_ui_commands"].quit,
+                function() ui_elem:unmount() end,
+                {noremap = true, silent = true})
 
     -- set content
     vim.api.nvim_buf_set_option(ui_elem.bufnr, "filetype", filetype)
@@ -27,15 +46,16 @@ local function setup_ui_element(lines, filetype, bufnr, start_row, start_col, en
 
     -- replace lines when ctrl-o pressed
     ui_elem:map("n", vim.g["codegpt_ui_commands"].use_as_output, function()
-        vim.api.nvim_buf_set_text(bufnr, start_row, start_col, end_row, end_col, lines)
+        vim.api.nvim_buf_set_text(bufnr, start_row, start_col, end_row, end_col,
+                                  lines)
         ui_elem:unmount()
     end)
 
     -- selecting all the content when ctrl-i is pressed
     -- so the user can proceed with another API request
-    ui_elem:map("n", vim.g["codegpt_ui_commands"].use_as_input, function()
-        vim.api.nvim_feedkeys("ggVG:Chat ", "n", false)
-    end, { noremap = false })
+    ui_elem:map("n", vim.g["codegpt_ui_commands"].use_as_input,
+                function() vim.api.nvim_feedkeys("ggVG:Chat ", "n", false) end,
+                {noremap = false})
 
     -- mapping custom commands
     for _, command in ipairs(vim.g.codegpt_ui_custom_commands) do
@@ -48,7 +68,7 @@ local function create_horizontal()
         split = Split({
             relative = "editor",
             position = "bottom",
-            size = vim.g["codegpt_horizontal_popup_size"],
+            size = vim.g["codegpt_horizontal_popup_size"]
         })
     end
 
@@ -60,7 +80,7 @@ local function create_vertical()
         split = Split({
             relative = "editor",
             position = "right",
-            size = vim.g["codegpt_vertical_popup_size"],
+            size = vim.g["codegpt_vertical_popup_size"]
         })
     end
 
@@ -70,9 +90,7 @@ end
 local function create_popup()
     if not popup then
         local window_options = vim.g["codegpt_popup_window_options"]
-        if window_options == nil then
-            window_options = {}
-        end
+        if window_options == nil then window_options = {} end
 
         -- check the old wrap config variable and use it if it's not set
         if window_options["wrap"] == nil then
@@ -84,11 +102,8 @@ local function create_popup()
             focusable = true,
             border = vim.g["codegpt_popup_border"],
             position = "50%",
-            size = {
-                width = "80%",
-                height = "60%",
-            },
-            win_options = window_options,
+            size = {width = "80%", height = "60%"},
+            win_options = window_options
         })
     end
 
@@ -107,7 +122,8 @@ function Ui.popup(lines, filetype, bufnr, start_row, start_col, end_row, end_col
     else
         ui_elem = create_popup()
     end
-    setup_ui_element(lines, filetype, bufnr, start_row, start_col, end_row, end_col, ui_elem)
+    setup_ui_element(lines, filetype, bufnr, start_row, start_col, end_row,
+                     end_col, ui_elem)
 end
 
 return Ui
