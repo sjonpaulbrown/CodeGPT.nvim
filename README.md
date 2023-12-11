@@ -314,6 +314,12 @@ vim.g["codegpt_horizontal_popup_size"] = "20%"
 vim.g["codegpt_vertical_popup_size"] = "20%"
 ```
 
+When using the horitontal or vertical split, the buffer can be persisted for later use with the `codegpt_ui_persist`
+
+```lua
+vim.g["codegpt_ui_persist"] = true
+```
+
 ### Miscellaneous Configuration Options
 
 ``` lua
