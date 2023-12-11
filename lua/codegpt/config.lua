@@ -91,4 +91,4 @@ vim.g["codegpt_ui_commands"] = {
 vim.g["codegpt_ui_custom_commands"] = {}
 
 vim.g["codegpt_ui_persist"] = false
-vim.g["codegpt_history_file"] = vim.fn.expand("~") .. "./codegpt_history.txt"
+vim.g["codegpt_history_file"] = vim.fn.expand("~") .. "/codegpt_history.txt"
