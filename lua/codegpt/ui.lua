@@ -8,20 +8,6 @@ local popup
 local split
 local file_path = vim.g["codegpt_history_file"]
 
-local function append_to_file()
-    -- Get the content of the current buffer
-    local buffer_content = vim.fn.getline(1, "$")
-
-    -- Open the file in append mode
-    local file = io.open(file_path, "a")
-
-    -- Append the buffer content to the file
-    for _, line in ipairs(buffer_content) do file:write(line .. "\n") end
-
-    -- Close the file
-    file:close()
-end
-
 local function setup_ui_element(lines, filetype, bufnr, start_row, start_col,
                                 end_row, end_col, ui_elem)
     -- mount/open the component
@@ -30,7 +16,13 @@ local function setup_ui_element(lines, filetype, bufnr, start_row, start_col,
     if not vim.g["codegpt_ui_persist"] then
         -- unmount component when cursor leaves buffer
         ui_elem:on(event.BufLeave, function()
-            append_to_file()
+            local file = io.open(file_path, "a")
+            if file then
+                file:write(buffer:get_text())
+                file:close()
+            else
+                print("Failed to open file")
+            end
             ui_elem:unmount()
         end)
     end
